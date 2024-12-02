@@ -1,0 +1,52 @@
+graph TD
+    subgraph "Context Level (Level 0)"
+        User((User/\nScheduler)) --> |Request Monitoring/\nReport Generation|MS[Monitoring System]
+        DS1[(Data Lake)] --> |Status Data|MS
+        DS2[(PowerBI)] --> |Status Data|MS
+        DS3[(Cube)] --> |Status Data|MS
+        MS --> |Alerts/Reports|User
+    end
+
+    subgraph "Detailed Level (Level 1)"
+        User2((User/\nScheduler)) --> |1. Monitor Request\nwith Date|Controller[API Controller]
+        User2 --> |2. Report Request\nwith Date Range|Controller
+        
+        Controller --> |3. Monitor\nRequest|MonService[Monitoring Service]
+        Controller --> |4. Report\nRequest|MonService
+        
+        subgraph "Data Sources"
+            DL[(Data Lake)]
+            PBI[(PowerBI)]
+            CB[(Cube)]
+        end
+        
+        DL --> |5. Status\nData|MonService
+        PBI --> |5. Status\nData|MonService
+        CB --> |5. Status\nData|MonService
+        
+        MonService --> |6. Store\nStatus|DB[(Status\nDatabase)]
+        
+        MonService --> |7. Status\nAlert|AlertServ[Alert Services]
+        
+        MonService --> |8. Request\nHistorical Data|DB
+        DB --> |9. Historical\nStatus Data|MonService
+        
+        MonService --> |10. Generate\nReport|RepServ[Report Service]
+        RepServ --> |11. Formatted\nReport|MonService
+        
+        subgraph "Alert Channels"
+            AlertServ --> |12. Send\nAlert/Report|Email[Email Service]
+            AlertServ --> |12. Send\nAlert/Report|Jira[Jira Service]
+        end
+        
+        Email --> |13. Notification|User2
+        Jira --> |13. Ticket|User2
+    end
+
+    classDef system fill:#f9f,stroke:#333,stroke-width:2px
+    classDef external fill:#fff,stroke:#333,stroke-width:2px
+    classDef storage fill:#ccf,stroke:#333,stroke-width:2px
+    
+    class MS,MonService,Controller,AlertServ,RepServ system
+    class User,User2,DL,PBI,CB external
+    class DB storage
